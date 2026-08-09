@@ -460,6 +460,32 @@ body {
   margin-top: var(--spacing-16);
 }
 
+/* ---------- Drop target (drag & drop upload) ---------- */
+.content.drop-active::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border: 1px dashed var(--color-acid-lime);
+  border-radius: calc(var(--radius-cards) + 4px);
+  pointer-events: none;
+}
+.drop-hint {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  background: var(--surface-carbon);
+  border: 1px solid var(--color-graphite);
+  border-radius: var(--radius-cards);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-12) var(--spacing-20);
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+}
+.drop-hint-title { color: var(--color-paper); font-size: 13px; font-weight: var(--font-weight-w510); }
+.drop-hint-sub { color: var(--color-ash); font-size: 11px; margin-top: 2px; }
+
 /* ---------- Reduced motion ---------- */
 /* motion sickness: keep opacity/color, buang movement/position */
 @media (prefers-reduced-motion: reduce) {

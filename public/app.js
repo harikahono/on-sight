@@ -102,7 +102,7 @@
 
   // ---------- Modal ----------
   function openModal(slug) {
-    editSlug = slug || null;
+    editSlug = typeof slug === 'string' ? slug : null; // guard: tombol add pass event object, bukan slug
     form.reset();
     formError.hidden = true;
     form.querySelectorAll('.drop-file').forEach(el => el.textContent = '');
@@ -122,7 +122,7 @@
   }
   function closeModal() { modal.hidden = true; }
 
-  $('#btn-add').addEventListener('click', openModal);
+  $('#btn-add').addEventListener('click', () => openModal());
   modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModal));
 
   form.querySelectorAll('input[type="file"]').forEach(input => {
@@ -153,6 +153,54 @@
       btnSubmit.disabled = false;
       btnSubmit.textContent = editSlug ? 'Simpan Perubahan' : 'Simpan Desain';
     }
+  });
+
+  // ---------- Drag & drop upload (Opsi B: ring + pill, tanpa overlay) ----------
+  const dropHint = document.createElement('div');
+  dropHint.className = 'drop-hint';
+  dropHint.hidden = true;
+  dropHint.innerHTML = '<div class="drop-hint-title">Lepaskan buat upload</div><div class="drop-hint-sub mono">HTML + screenshot bareng juga bisa</div>';
+  $('.content').appendChild(dropHint);
+
+  let dragDepth = 0; // dragCounter — highlight ilang pas drag beneran keluar, bukan pas lewat elemen anak
+  const setDropActive = (on) => {
+    $('.content').classList.toggle('drop-active', on);
+    dropHint.hidden = !on;
+  };
+  const hasFiles = (e) => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+
+  window.addEventListener('dragenter', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth++;
+    setDropActive(true);
+  });
+  window.addEventListener('dragover', (e) => {
+    if (hasFiles(e)) e.preventDefault(); // wajib — tanpa ini browser nolak drop
+  });
+  window.addEventListener('dragleave', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    if (--dragDepth <= 0) { dragDepth = 0; setDropActive(false); }
+  });
+  window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragDepth = 0;
+    setDropActive(false);
+    const files = [...e.dataTransfer.files];
+    const html = files.find(f => /\.html?$/i.test(f.name));
+    const shot = files.find(f => /\.(png|jpe?g|webp)$/i.test(f.name));
+    if (!html && !shot) return; // folder / file lain → ignore, gak ada error
+    const setFile = (input, file) => {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      input.closest('.drop').querySelector('.drop-file').textContent = file.name;
+    };
+    openModal(); // mode Tambah, file HTML jadi wajib
+    form.elements.name.value = (html || shot).name.replace(/\.(html?|png|jpe?g|webp)$/i, '');
+    if (html) setFile(form.html, html);
+    if (shot) setFile(form.screenshot, shot);
   });
 
   // ---------- Polling ----------
