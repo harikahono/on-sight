@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>on-sight — gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="variables.css">
+  <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+  <div id="ascii-backdrop" aria-hidden="true">
+    <img id="ascii-source" src="ascii-source.jpg" alt="">
+    <canvas id="ascii-canvas"></canvas>
+  </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <svg class="brand-glyph" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="8" cy="8" r="2.5" fill="currentColor"/>
+        </svg>
+        <span class="brand-name">ON SIGHT</span>
+        <span class="brand-tag mono">//everybody wanna live at the top of the mountain</span>
+      </div>
+      <div class="search-wrap">
+        <input id="search" class="search-input" type="text" placeholder="Cari desain…" autocomplete="off" spellcheck="false">
+        <kbd class="kbd mono">Ctrl K</kbd>
+      </div>
+      <button id="btn-add" class="btn-acid">+ Tambah Desain</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="grid-head">
+      <h1 class="grid-title">Koleksi</h1>
+      <span id="grid-count" class="grid-count mono"></span>
+    </div>
+    <section id="grid" class="grid" aria-live="polite"></section>
+    <div id="empty" class="empty" hidden>
+      <p class="empty-title">Belum ada desain</p>
+      <p class="empty-sub">Klik <strong>+ Tambah Desain</strong> buat mulai — upload HTML + screenshot, selesai.</p>
+    </div>
+  </main>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <h2 id="modal-title" class="modal-title">Tambah Desain</h2>
+        <button class="modal-x" data-close aria-label="Tutup">&times;</button>
+      </div>
+      <form id="form-add">
+        <label class="field">
+          <span class="field-label">Nama</span>
+          <input type="text" name="name" class="input" placeholder="mis. Landing Page Baru" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Deskripsi</span>
+          <input type="text" name="description" class="input" placeholder="Opsional — cerita singkat desainnya">
+        </label>
+        <label class="field">
+          <span class="field-label">Tags</span>
+          <input type="text" name="tags" class="input" placeholder="hero, dark, form (pisah koma)">
+        </label>
+        <div class="field">
+          <span class="field-label">File HTML <em class="req">*wajib</em></span>
+          <label class="drop">
+            <input type="file" name="html" accept=".html,.htm" required>
+            <span class="drop-text">Pilih <strong>index.html</strong> — satu file lengkap (CSS/JS inline)</span>
+            <span class="drop-file mono"></span>
+          </label>
+        </div>
+        <div class="field">
+          <span class="field-label">Screenshot</span>
+          <label class="drop">
+            <input type="file" name="screenshot" accept=".png,.jpg,.jpeg,.webp">
+            <span class="drop-text">Opsional — PNG/JPG/WebP buat thumbnail grid</span>
+            <span class="drop-file mono"></span>
+          </label>
+        </div>
+        <p id="form-error" class="form-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" data-close>Batal</button>
+          <button type="submit" class="btn-acid" id="btn-submit">Simpan Desain</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="ascii-backdrop.js?v=3"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "on-sight",
+  "version": "0.1.0",
+  "description": "Visual gallery / sandbox buat koleksi desain HTML statis",
+  "bin": {
+    "onsight": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.2.0",
+    "on-sight": "link:"
+  }
+}
