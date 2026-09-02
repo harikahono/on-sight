@@ -12,7 +12,11 @@
 
   let designs = [];
   let filter = '';
+  let filterTags = [];
+  let tagSearch = '';
+  let tagsExpanded = false;
   let editSlug = null;
+  const TAG_VISIBLE_MAX = 8;
 
   // ---------- Render ----------
   function card(d) {
@@ -38,13 +42,11 @@
   }
 
   function render() {
-    const q = filter.toLowerCase();
-    const list = designs.filter(d =>
-      !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q) || d.tags.some(t => t.toLowerCase().includes(q))
-    );
+    const list = getFilteredDesigns();
     grid.innerHTML = list.map(card).join('');
     empty.hidden = designs.length > 0;
     count.textContent = `${list.length} / ${designs.length}`;
+    renderTagFilters();
   }
 
   function escapeHtml(s) {
@@ -53,6 +55,68 @@
 
   // ---------- Data ----------
   let lastSig = ''; // anti-flicker: polling gak boleh re-render kalau data sama
+  function getFilteredDesigns() {
+    const q = filter.toLowerCase();
+    return designs.filter(d => {
+      if (q && !d.name.toLowerCase().includes(q) && !d.description.toLowerCase().includes(q) && !d.tags.some(t => t.toLowerCase().includes(q))) return false;
+      if (filterTags.length && !d.tags.some(t => filterTags.includes(t))) return false;
+      return true;
+    });
+  }
+
+
+
+  function renderTagFilters() {
+    const container = document.getElementById('tag-filters');
+    if (!container) return;
+
+    // hitung count per tag dari data full (bukan filtered)
+    const tagCounts = {};
+    designs.forEach(d => d.tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+    let allTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+
+    if (!allTags.length) { container.innerHTML = ''; return; }
+
+    // search filter
+    const sq = tagSearch.toLowerCase();
+    if (sq) allTags = allTags.filter(t => t.toLowerCase().includes(sq));
+
+    // progressive disclosure
+    const needsMore = allTags.length > TAG_VISIBLE_MAX;
+    const visibleTags = (needsMore && !tagsExpanded) ? allTags.slice(0, TAG_VISIBLE_MAX) : allTags;
+    const hiddenCount = allTags.length - visibleTags.length;
+
+    let html = '';
+
+    // search input (kalau total tag > 8)
+    if (Object.keys(tagCounts).length > TAG_VISIBLE_MAX) {
+      html += `<div class="tag-search-wrap"><input id="tag-search" class="tag-search-input" type="text" placeholder="Cari tag…" value="${escapeHtml(tagSearch)}" autocomplete="off"></div>`;
+    }
+
+    // tag pills
+    html += visibleTags.map(t => {
+      const active = filterTags.includes(t);
+      return `<button class="tag-filter${active ? ' active' : ''}" data-tag="${escapeHtml(t)}" aria-pressed="${active}">${escapeHtml(t)} <span class="tag-count">${tagCounts[t]}</span></button>`;
+    }).join('');
+
+    // show more / show less
+    if (needsMore) {
+      if (tagsExpanded) {
+        html += `<button class="tag-more" id="tag-toggle">Tampilkan lebih sedikit</button>`;
+      } else if (hiddenCount > 0) {
+        html += `<button class="tag-more" id="tag-toggle">+${hiddenCount} lainnya</button>`;
+      }
+    }
+
+    // clear all button
+    if (filterTags.length) {
+      html += `<button class="tag-clear" id="clear-all-filters" aria-label="Clear all filters">&times;</button>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  // ponytail: filterTags frontend doang, gak ke server
   async function refresh() {
     try {
       const res = await fetch('/api/designs');
@@ -75,6 +139,42 @@
     }
     const card = e.target.closest('.card');
     if (card) window.open(card.dataset.url, '_blank');
+  });
+
+  // Event delegation untuk semua tag filter interactions
+  document.addEventListener('click', (e) => {
+    // toggle tag filter
+    const tagBtn = e.target.closest('.tag-filter');
+    if (tagBtn) {
+      const tag = tagBtn.dataset.tag;
+      const idx = filterTags.indexOf(tag);
+      if (idx > -1) filterTags.splice(idx, 1);
+      else filterTags.push(tag);
+      render();
+      return;
+    }
+    // clear all filters
+    const clearBtn = e.target.closest('#clear-all-filters');
+    if (clearBtn) {
+      filterTags = [];
+      render();
+      return;
+    }
+    // show more / less
+    const toggleBtn = e.target.closest('#tag-toggle');
+    if (toggleBtn) {
+      tagsExpanded = !tagsExpanded;
+      renderTagFilters();
+      return;
+    }
+  });
+
+  // tag search input
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'tag-search') {
+      tagSearch = e.target.value;
+      renderTagFilters();
+    }
   });
 
   // ---------- Hapus ----------
